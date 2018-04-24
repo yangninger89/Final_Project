@@ -22,7 +22,7 @@ TEMPLATE for your report:
 as changing pay rate under the same color, and having choice of bet under double down
 
 
-## Simulation's variables of uncertainty
+## Simulation's Variables of Uncertainty:
 
 - **Simulation Variable**: pay rate under same color situation; the bet under double down situation
 
