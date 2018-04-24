@@ -6,7 +6,7 @@ DELETE these lines from TEMPLATE up.
 
 TEMPLATE for your report:
 
-# Title: Blackjack Game Variant
+# Blackjack Game Variant
 
 ## Team Member(s): 
 
