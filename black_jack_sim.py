@@ -4,6 +4,7 @@ import csv
 
 value_chart = {'ace': 11, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9,
                'ten': 10, 'jack': 10, 'queen': 10, 'king': 10}    # value of ace is default to 11
+color_chart = {'diamond': 'red', 'heart': 'red', 'spade': 'black', 'club': 'black'}
 
 # reads in the strategy_chart  {17: {2: 'S', 3: 'S'}}
 first_row = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'A']
@@ -59,8 +60,8 @@ def calculate_points_exclude_ace(list_of_cards):
 
 def construct_key(list_of_cards: list) -> str:
     temp_value = calculate_points_exclude_ace(list_of_cards)
-
     return 'A, ' + str(temp_value)
+
 
 def game_proceed(current_player):
     next_strategy = current_player.choose_strategy()
@@ -75,7 +76,7 @@ def game_proceed(current_player):
             game_proceed(p)
 
 
-def check_final_result():
+def check_final_result(n): # indicator of whether player chooses special fee
 
     player_gain_of_current_game = 0
     dealer_gain_of_current_game = 0
@@ -93,14 +94,26 @@ def check_final_result():
                 dealer_gain_of_current_game += Player.players[p]['bet']
                 player_gain_of_current_game -= Player.players[p]['bet']
         elif dealer_points > 21:  # Player wins
-            player_gain_of_current_game += Player.players[p]['bet']
-            dealer_gain_of_current_game -= Player.players[p]['bet']
+            if n != 1:
+                if len(set(Player.players[main_player.name]['colors'])) == 1:
+                    print('98: Yay, same color win BIG!')
+                    player_gain_of_current_game += n * Player.players[p]['bet']
+                    dealer_gain_of_current_game -= n * Player.players[p]['bet']
+            else:
+                player_gain_of_current_game += Player.players[p]['bet']
+                dealer_gain_of_current_game -= Player.players[p]['bet']
         elif dealer_points > player_points:  # Dealer wins
             player_gain_of_current_game -= Player.players[p]['bet']
             dealer_gain_of_current_game += Player.players[p]['bet']
         elif dealer_points < player_points:  # Player wins
-            player_gain_of_current_game += Player.players[p]['bet']
-            dealer_gain_of_current_game -= Player.players[p]['bet']
+            if n != 1:
+                if len(set(Player.players[main_player.name]['colors'])) == 1:
+                    print('109: Yay, same color win BIG!')
+                    player_gain_of_current_game += n * Player.players[p]['bet']
+                    dealer_gain_of_current_game -= n * Player.players[p]['bet']
+            else:
+                player_gain_of_current_game += Player.players[p]['bet']
+                dealer_gain_of_current_game -= Player.players[p]['bet']
 
     game_result = dealer_gain_of_current_game - player_gain_of_current_game
     Dealer.game_result.append(game_result)
@@ -132,7 +145,7 @@ def print_result(number_of_test, player_black_jack_count, dealer_black_jack_coun
 class Player:
     list_of_players = []  # list of players's name
     list_of_player_instance = []
-    players = {}  # {name: {bet: bet, cards: [...]}}
+    players = {}  # {name: {bet: bet, cards: [...], color: 'red'}}
 
     def __init__(self, name: str, bet: int, cards_pool: list):
         self.name = name
@@ -143,6 +156,7 @@ class Player:
         Player.players[name] = {}
         Player.players[name]['cards'] = [self.card[1]]
         Player.players[name]['bet'] = self.bet
+        Player.players[name]['colors'] = [color_chart[self.card[0]]]
         Player.list_of_players.append(self.name)
         Player.list_of_player_instance.append(self)
 
@@ -178,19 +192,24 @@ class Player:
 
     def hitting(self, cards_pool):
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
+        Player.players[self.name]['colors'].append(draw_card(cards_pool)[0])
 
     def double_down(self, cards_pool):
         additional_bet = random.sample(range(1, self.bet + 1), 1)[0]
         Player.players[self.name]['bet'] += additional_bet
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
+        Player.players[self.name]['colors'].append(draw_card(cards_pool)[0])
 
     def splitting(self, cards_pool):
         i = len(Player.list_of_players)
         new_name = self.name + str(i)
         Player(new_name, self.bet, cards_pool)
         Player.players[new_name]['cards'].append(Player.players[self.name]['cards'][0])
+        Player.players[new_name]['colors'].append(Player.players[self.name]['colors'][0])
         del Player.players[self.name]['cards'][0]
+        del Player.players[self.name]['colors'][0]
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
+        Player.players[self.name]['colors'].append(draw_card(cards_pool)[0])
 
 
 class Dealer:
@@ -204,15 +223,20 @@ class Dealer:
 
 
 if __name__ == '__main__':
-    fee = 3
+
+    normal_fee = 5
     number_of_test = 1000
-    dealer_gain_from_fee = fee * number_of_test
-    pay_rate = 3/2
+    # pay_rate = 3/2
     player_black_jack_count = 0
     dealer_black_jack_count = 0
+    dealer_gain_from_fee = 0
 
     # baseline model
     for i in range(number_of_test):
+        n = random.sample([1, 2, 3], 1)[0]
+        choice_of_fee = n * normal_fee
+        dealer_gain_from_fee = choice_of_fee * number_of_test
+        pay_rate = 3 / 2
         deck = initiating_deck()
         Player.list_of_player_instance = []
         Player.list_of_players = []
@@ -222,6 +246,7 @@ if __name__ == '__main__':
         main_player = Player('steven', random_bet, deck)
         the_house = Dealer(deck)
         Player.players[main_player.name]['cards'].append(draw_card(deck)[1])
+        Player.players[main_player.name]['colors'].append(draw_card(deck)[0])
         dealer_face_up = draw_card(deck)
         Dealer.cards.append(dealer_face_up[1])
 
@@ -230,7 +255,14 @@ if __name__ == '__main__':
                      ['ace', 'king'], ['king', 'ace']]
         if Player.players[main_player.name]['cards'] in BlackJack:
             player_black_jack_count += 1
-            Dealer.game_result.append(- pay_rate * Player.players[main_player.name]['bet'])
+            if n != 1:
+                if len(set(Player.players[main_player.name]['colors'])) == 1:
+                    print('254: Yay, same color win BIG!')
+                    pay_rate = n * pay_rate
+                    Dealer.game_result.append(- pay_rate * Player.players[main_player.name]['bet'])
+            else:
+                Dealer.game_result.append(- pay_rate * Player.players[main_player.name]['bet'])
+
         elif Dealer.cards in BlackJack:
             dealer_black_jack_count += 1
             Dealer.game_result.append(Player.players[main_player.name]['bet'])
@@ -238,8 +270,7 @@ if __name__ == '__main__':
         # common situation when player didn't get blackjack
         else:
             game_proceed(main_player)
-            check_final_result()
+            check_final_result(n)
 
     print_result(number_of_test, player_black_jack_count, dealer_black_jack_count, dealer_gain_from_fee)
 
-    # new_rule
