@@ -80,11 +80,6 @@ class Player:
         Player.list_of_players.append(self.name)
         Player.list_of_player_instance.append(self)
 
-    # def __str__(self):
-    #     return self.name
-
-    # def __repr__(self):
-    #     return self.name
 
     def choose_strategy(self):
 
@@ -130,43 +125,20 @@ class Player:
     def splitting(self, cards_pool):
         i = len(Player.list_of_players)
         new_name = self.name + str(i)
-        print(new_name)
-        new_player = Player(new_name, self.bet, cards_pool)
+        Player(new_name, self.bet, cards_pool)
         Player.players[new_name]['cards'].append(Player.players[self.name]['cards'][0])
         del Player.players[self.name]['cards'][0]
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
-        Player.list_of_player_instance.append(new_player)
-
-        print(Player.players[self.name]['cards'])
-        print(Player.players[new_name]['cards'])
 
 
 class Dealer:
     cards = []
-    win = 0
+    game_result = []
 
     def __init__(self, cards_pool: list):
         self.face_down = cards_pool[0]
         del cards_pool[0]
         Dealer.cards.append(self.face_down[1])
-
-    def __str__(self):
-        return 'The House'
-
-    def check_final_result(self):
-        dealer_points = calculate_value(Dealer.cards)
-
-        while dealer_points < 17:
-            Dealer.cards.append(draw_card(deck)[1])
-            dealer_points = calculate_value(Dealer.cards)
-
-        for p in Player.list_of_players:
-            cards = Player.players[p]['cards']
-            player_points = calculate_value(cards)
-            if dealer_points > player_points or player_points > 21:
-                Dealer.win += Player.players[p]['bet']
-            if dealer_points < player_points:
-                Dealer.win -= 3/2 * Player.players[p]['bet']
 
 
 def game_proceed(current_player):
@@ -183,11 +155,56 @@ def game_proceed(current_player):
             game_proceed(p)
 
 
-if __name__ == '__main__':
-    player_win_count = 0
-    player_gain = 0
+def check_final_result():
+    dealer_gain_of_current_game = 0
 
-    for i in range(5):
+    dealer_points = calculate_value(Dealer.cards)
+    while dealer_points < 17:
+        Dealer.cards.append(draw_card(deck)[1])
+        dealer_points = calculate_value(Dealer.cards)
+
+    for p in Player.list_of_players:
+        cards = Player.players[p]['cards']
+        player_points = calculate_value(cards)
+
+        if player_points > 21:
+            if dealer_points <= 21:
+                dealer_gain_of_current_game += Player.players[p]['bet']
+        elif dealer_points > 21:
+            dealer_gain_of_current_game -= 3/2 * Player.players[p]['bet']
+        elif dealer_points > player_points:
+            dealer_gain_of_current_game += Player.players[p]['bet']
+        elif dealer_points < player_points:
+            dealer_gain_of_current_game -= 3/2 * Player.players[p]['bet']
+
+    Dealer.game_result.append(dealer_gain_of_current_game)
+
+
+def print_result(number_of_test):
+    win = 0
+    draw = 0
+    lose = 0
+    total_gain = 0
+
+    for result in Dealer.game_result:
+        total_gain += result
+        if result > 0:
+            win += 1
+        elif result < 0:
+            lose += 1
+        else:
+            draw += 1
+
+    print('Win rate for the house is: ' + str(round(win/number_of_test*100, 2)) + '%')
+    print('Lose rate for the house is: ' + str(round(lose/number_of_test*100, 2)) + '%')
+    print('Draw rate for the house is: ' + str(round(draw/number_of_test*100, 2)) + '%')
+    print('Total gain of the House is: ' + str(total_gain) + '.')
+
+
+if __name__ == '__main__':
+    number_of_test = 100000
+
+    for i in range(number_of_test):
         deck = initiating_deck()
         Player.list_of_player_instance = []
         Player.list_of_players = []
@@ -201,11 +218,5 @@ if __name__ == '__main__':
         Dealer.cards.append(dealer_face_up[1])
 
         game_proceed(main_player)
-        for p in Player.list_of_players:
-            print(p, Player.players[p]['cards'])
-        print('dealer', Dealer.cards)
-        print('*****')
-
-
-
-
+        check_final_result()
+    print_result(number_of_test)
