@@ -4,7 +4,11 @@ import csv
 
 value_chart = {'ace': 11, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9,
                'ten': 10, 'jack': 10, 'queen': 10, 'king': 10}    # value of ace is default to 11
+
 color_chart = {'diamond': 'red', 'heart': 'red', 'spade': 'black', 'club': 'black'}
+
+BlackJack = [['ace', 'ten'], ['ten', 'ace'], ['ace', 'jack'], ['jack', 'ace'], ['ace', 'queen'], ['queen', 'ace'],
+             ['ace', 'king'], ['king', 'ace']]
 
 # reads in the strategy_chart  {17: {2: 'S', 3: 'S'}}
 first_row = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'A']
@@ -76,9 +80,8 @@ def game_proceed(current_player):
             game_proceed(p)
 
 
-def check_final_result(n): # indicator of whether player chooses special fee
+def check_final_result(n):  # indicator of whether player chooses special fee
 
-    player_gain_of_current_game = 0
     dealer_gain_of_current_game = 0
     dealer_points = calculate_value(Dealer.cards)
     while dealer_points < 17:
@@ -92,31 +95,26 @@ def check_final_result(n): # indicator of whether player chooses special fee
         if player_points > 21:  # Dealer wins
             if dealer_points <= 21:
                 dealer_gain_of_current_game += Player.players[p]['bet']
-                player_gain_of_current_game -= Player.players[p]['bet']
         elif dealer_points > 21:  # Player wins
             if n != 1:
                 if len(set(Player.players[main_player.name]['colors'])) == 1:
-                    print('98: Yay, same color win BIG!')
-                    player_gain_of_current_game += n * Player.players[p]['bet']
                     dealer_gain_of_current_game -= n * Player.players[p]['bet']
+                else:
+                    dealer_gain_of_current_game -= Player.players[p]['bet']
             else:
-                player_gain_of_current_game += Player.players[p]['bet']
                 dealer_gain_of_current_game -= Player.players[p]['bet']
         elif dealer_points > player_points:  # Dealer wins
-            player_gain_of_current_game -= Player.players[p]['bet']
             dealer_gain_of_current_game += Player.players[p]['bet']
         elif dealer_points < player_points:  # Player wins
             if n != 1:
                 if len(set(Player.players[main_player.name]['colors'])) == 1:
-                    print('109: Yay, same color win BIG!')
-                    player_gain_of_current_game += n * Player.players[p]['bet']
                     dealer_gain_of_current_game -= n * Player.players[p]['bet']
+                else:
+                    dealer_gain_of_current_game -= Player.players[p]['bet']
             else:
-                player_gain_of_current_game += Player.players[p]['bet']
                 dealer_gain_of_current_game -= Player.players[p]['bet']
 
-    game_result = dealer_gain_of_current_game - player_gain_of_current_game
-    Dealer.game_result.append(game_result)
+    Dealer.game_result.append(dealer_gain_of_current_game)
 
 
 def print_result(number_of_test, player_black_jack_count, dealer_black_jack_count, dealer_gain_from_fee):
@@ -224,9 +222,8 @@ class Dealer:
 
 if __name__ == '__main__':
 
-    normal_fee = 5
-    number_of_test = 1000
-    # pay_rate = 3/2
+    normal_fee = 3
+    number_of_test = 10000
     player_black_jack_count = 0
     dealer_black_jack_count = 0
     dealer_gain_from_fee = 0
@@ -234,9 +231,10 @@ if __name__ == '__main__':
     # baseline model
     for i in range(number_of_test):
         n = random.sample([1, 2, 3], 1)[0]
+        pay_rate = 3 / 2
         choice_of_fee = n * normal_fee
         dealer_gain_from_fee = choice_of_fee * number_of_test
-        pay_rate = 3 / 2
+
         deck = initiating_deck()
         Player.list_of_player_instance = []
         Player.list_of_players = []
@@ -251,17 +249,17 @@ if __name__ == '__main__':
         Dealer.cards.append(dealer_face_up[1])
 
         # check if player/dealer got blackjack
-        BlackJack = [['ace', 'ten'], ['ten', 'ace'], ['ace', 'jack'], ['jack', 'ace'], ['ace', 'queen'], ['queen', 'ace'],
-                     ['ace', 'king'], ['king', 'ace']]
         if Player.players[main_player.name]['cards'] in BlackJack:
             player_black_jack_count += 1
             if n != 1:
                 if len(set(Player.players[main_player.name]['colors'])) == 1:
-                    print('254: Yay, same color win BIG!')
                     pay_rate = n * pay_rate
-                    Dealer.game_result.append(- pay_rate * Player.players[main_player.name]['bet'])
+                    Dealer.game_result.append(-1 * pay_rate * Player.players[main_player.name]['bet'])
+                else:
+                    Dealer.game_result.append(-1 * pay_rate * Player.players[main_player.name]['bet'])
+
             else:
-                Dealer.game_result.append(- pay_rate * Player.players[main_player.name]['bet'])
+                Dealer.game_result.append(-1 * pay_rate * Player.players[main_player.name]['bet'])
 
         elif Dealer.cards in BlackJack:
             dealer_black_jack_count += 1
