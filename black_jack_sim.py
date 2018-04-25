@@ -21,6 +21,66 @@ with open('black_jack_strategy.csv', 'r') as f:
         strategy_chart[key1] = strategies_in_row
 
 
+def game_proceed(current_player):
+    next_strategy = current_player.choose_strategy()
+
+    if next_strategy == 'D':
+        current_player.double_down(deck)
+    elif next_strategy == 'H':
+        current_player.hitting(deck)
+        game_proceed(current_player)
+    elif next_strategy == 'SP':
+        current_player.splitting(deck)
+        for p in Player.list_of_player_instance:
+            game_proceed(p)
+
+
+def check_final_result():
+    dealer_gain_of_current_game = 0
+
+    dealer_points = calculate_value(Dealer.cards)
+    while dealer_points < 17:
+        Dealer.cards.append(draw_card(deck)[1])
+        dealer_points = calculate_value(Dealer.cards)
+
+    for p in Player.list_of_players:
+        cards = Player.players[p]['cards']
+        player_points = calculate_value(cards)
+
+        if player_points > 21:
+            if dealer_points <= 21:
+                dealer_gain_of_current_game += Player.players[p]['bet']
+        elif dealer_points > 21:
+            dealer_gain_of_current_game -= pay_rate * Player.players[p]['bet']
+        elif dealer_points > player_points:
+            dealer_gain_of_current_game += pay_rate * Player.players[p]['bet']
+        elif dealer_points < player_points:
+            dealer_gain_of_current_game -= pay_rate * Player.players[p]['bet']
+
+    Dealer.game_result.append(dealer_gain_of_current_game)
+
+
+def print_result(number_of_test):
+    win = 0
+    draw = 0
+    lose = 0
+    total_gain = 0
+
+    for result in Dealer.game_result:
+        total_gain += result
+        if result > 0:
+            win += 1
+        elif result < 0:
+            lose += 1
+        else:
+            draw += 1
+
+    print('Win rate for the house is: ' + str(round(win/number_of_test*100, 2)) + '%')
+    print('Lose rate for the house is: ' + str(round(lose/number_of_test*100, 2)) + '%')
+    print('Draw rate for the house is: ' + str(round(draw/number_of_test*100, 2)) + '%')
+    print('Total gain of the House is: ' + str(total_gain))
+
+
 def initiating_deck() -> list:  # ex: ('diamond', 'three')
     suits = ['heart', 'diamond', 'club', 'spade']
     face_values = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king']
@@ -80,7 +140,6 @@ class Player:
         Player.list_of_players.append(self.name)
         Player.list_of_player_instance.append(self)
 
-
     def choose_strategy(self):
 
         my_cards = Player.players[self.name]['cards']
@@ -118,8 +177,9 @@ class Player:
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
 
     def double_down(self, cards_pool):
-        additional_bet = random.sample(range(1, self.bet + 1), 1)
-        Player.players[self.name]['bet'] += additional_bet[0]
+        # additional_bet = self.bet * 3
+        additional_bet = random.sample(range(1, self.bet + 1), 1)[0]
+        Player.players[self.name]['bet'] += additional_bet
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
 
     def splitting(self, cards_pool):
@@ -141,76 +201,19 @@ class Dealer:
         Dealer.cards.append(self.face_down[1])
 
 
-def game_proceed(current_player):
-    next_strategy = current_player.choose_strategy()
-
-    if next_strategy == 'D':
-        current_player.double_down(deck)
-    elif next_strategy == 'H':
-        current_player.hitting(deck)
-        game_proceed(current_player)
-    elif next_strategy == 'SP':
-        current_player.splitting(deck)
-        for p in Player.list_of_player_instance:
-            game_proceed(p)
-
-
-def check_final_result():
-    dealer_gain_of_current_game = 0
-
-    dealer_points = calculate_value(Dealer.cards)
-    while dealer_points < 17:
-        Dealer.cards.append(draw_card(deck)[1])
-        dealer_points = calculate_value(Dealer.cards)
-
-    for p in Player.list_of_players:
-        cards = Player.players[p]['cards']
-        player_points = calculate_value(cards)
-
-        if player_points > 21:
-            if dealer_points <= 21:
-                dealer_gain_of_current_game += Player.players[p]['bet']
-        elif dealer_points > 21:
-            dealer_gain_of_current_game -= 3/2 * Player.players[p]['bet']
-        elif dealer_points > player_points:
-            dealer_gain_of_current_game += Player.players[p]['bet']
-        elif dealer_points < player_points:
-            dealer_gain_of_current_game -= 3/2 * Player.players[p]['bet']
-
-    Dealer.game_result.append(dealer_gain_of_current_game)
-
-
-def print_result(number_of_test):
-    win = 0
-    draw = 0
-    lose = 0
-    total_gain = 0
-
-    for result in Dealer.game_result:
-        total_gain += result
-        if result > 0:
-            win += 1
-        elif result < 0:
-            lose += 1
-        else:
-            draw += 1
-
-    print('Win rate for the house is: ' + str(round(win/number_of_test*100, 2)) + '%')
-    print('Lose rate for the house is: ' + str(round(lose/number_of_test*100, 2)) + '%')
-    print('Draw rate for the house is: ' + str(round(draw/number_of_test*100, 2)) + '%')
-    print('Total gain of the House is: ' + str(total_gain) + '.')
-
-
 if __name__ == '__main__':
-    number_of_test = 100000
+    number_of_test = 10000
+    pay_rate = 1
 
+    # baseline model
     for i in range(number_of_test):
         deck = initiating_deck()
         Player.list_of_player_instance = []
         Player.list_of_players = []
         Player.players = {}
         Dealer.cards = []
-        main_player = Player('steven', 5, deck)
+        random_bet = random.sample(range(2, 500), 1)[0]
+        main_player = Player('steven', random_bet, deck)
         the_house = Dealer(deck)
         player_card = draw_card(deck)
         Player.players[main_player.name]['cards'].append(player_card[1])
@@ -219,4 +222,7 @@ if __name__ == '__main__':
 
         game_proceed(main_player)
         check_final_result()
+
     print_result(number_of_test)
+
+    # new_rule
