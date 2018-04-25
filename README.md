@@ -6,18 +6,32 @@ DELETE these lines from TEMPLATE up.
 
 TEMPLATE for your report:
 
-# Title: 
+# Blackjack Game Variant
 
-## Team Member(s):
-(Note: Don't put your email addresses here (which is public).  If a student wants their NAME hidden as well, due to optional FERPA regulations, they can be listed purely by their GitHub ID).
+## Team Member(s): 
+
+**Nan Yang, Wei Zhong**
 
 # Monte Carlo Simulation Scenario & Purpose:
-(be sure to read the instructions given in course Moodle)
 
-## Simulation's variables of uncertainty
-List and describe your simulation's variables of uncertainty (where you're using pseudo-random number generation). For each such variable, how did you decide the range and probability distribution to use?  Do you think it's a good representation of reality?
+- **Purpose**: use monte carlo to test whether the blackjack variant is profitable for casinos, according to real life blackjack strategy
+
+- **Base Model**: single deck, single player, original blackjack rules
+
+- **Updated Model**: add new rules to the original game, such
+as changing pay rate under the same color, and having choice of bet under double down
+
+
+## Simulation's Variables of Uncertainty:
+
+- **Simulation Variable**: pay rate under same color situation; the bet under double down situation
+
+- **Distribution of Variable**: both variables follow uniform distribution [a, b]
 
 ## Hypothesis or hypotheses before running the simulation:
+
+- The variant version will bring more profit for casinos
+
 
 ## Analytical Summary of your findings: (e.g. Did you adjust the scenario based on previous simulation outcomes?  What are the management decisions one could make from your simulation's output, etc.)
 
