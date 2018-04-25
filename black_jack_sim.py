@@ -23,7 +23,6 @@ with open('black_jack_strategy.csv', 'r') as f:
 
 def game_proceed(current_player):
     next_strategy = current_player.choose_strategy()
-
     if next_strategy == 'D':
         current_player.double_down(deck)
     elif next_strategy == 'H':
@@ -36,8 +35,8 @@ def game_proceed(current_player):
 
 
 def check_final_result():
-    dealer_gain_of_current_game = 0
 
+    dealer_gain_of_current_game = 0
     dealer_points = calculate_value(Dealer.cards)
     while dealer_points < 17:
         Dealer.cards.append(draw_card(deck)[1])
@@ -60,7 +59,7 @@ def check_final_result():
     Dealer.game_result.append(dealer_gain_of_current_game)
 
 
-def print_result(number_of_test):
+def print_result(number_of_test, black_jack_count):
     win = 0
     draw = 0
     lose = 0
@@ -75,10 +74,11 @@ def print_result(number_of_test):
         else:
             draw += 1
 
-    print('Win rate for the house is: ' + str(round(win/number_of_test*100, 2)) + '%')
-    print('Lose rate for the house is: ' + str(round(lose/number_of_test*100, 2)) + '%')
-    print('Draw rate for the house is: ' + str(round(draw/number_of_test*100, 2)) + '%')
+    print('Win rate for the house is: ' + str(round(win / number_of_test * 100, 2)) + '%')
+    print('Lose rate for the house is: ' + str(round(lose / number_of_test * 100, 2)) + '%')
+    print('Draw rate for the house is: ' + str(round(draw / number_of_test * 100, 2)) + '%')
     print('Total gain of the House is: ' + str(total_gain))
+    print('BlackJack appeared: ' + str(black_jack_count) + ' times.')
 
 
 def initiating_deck() -> list:  # ex: ('diamond', 'three')
@@ -141,7 +141,6 @@ class Player:
         Player.list_of_player_instance.append(self)
 
     def choose_strategy(self):
-
         my_cards = Player.players[self.name]['cards']
         my_points = calculate_value(my_cards)
 
@@ -204,6 +203,7 @@ class Dealer:
 if __name__ == '__main__':
     number_of_test = 10000
     pay_rate = 1
+    black_jack_count = 0
 
     # baseline model
     for i in range(number_of_test):
@@ -215,14 +215,21 @@ if __name__ == '__main__':
         random_bet = random.sample(range(2, 500), 1)[0]
         main_player = Player('steven', random_bet, deck)
         the_house = Dealer(deck)
-        player_card = draw_card(deck)
-        Player.players[main_player.name]['cards'].append(player_card[1])
+        Player.players[main_player.name]['cards'].append(draw_card(deck)[1])
         dealer_face_up = draw_card(deck)
         Dealer.cards.append(dealer_face_up[1])
 
-        game_proceed(main_player)
-        check_final_result()
+        # check if player got blackjack
+        BlackJack = [['ace', 'ten'], ['ten', 'ace'], ['ace', 'jack'], ['jack', 'ace'], ['ace', 'queen'], ['queen', 'ace'],
+                     ['ace', 'king'], ['king', 'ace']]
+        if Player.players[main_player.name]['cards'] in BlackJack:
+                    black_jack_count += 1
+                    Dealer.game_result.append(- 3/2 * pay_rate * Player.players[main_player.name]['bet'])
+        # common situation when player didn't get blackjack
+        else:
+            game_proceed(main_player)
+            check_final_result()
 
-    print_result(number_of_test)
+    print_result(number_of_test, black_jack_count)
 
     # new_rule
