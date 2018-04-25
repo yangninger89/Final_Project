@@ -126,11 +126,12 @@ class Player:
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
 
     def splitting(self, cards_pool):
-        i = len(Player.players[self.name])
+        i = len(Player.list_of_players)
         new_name = self.name + str(i)
-        Player(new_name, self.bet, Player.players[self.name]['cards'])
+        Player(new_name, self.bet, cards_pool)
+        Player.players[new_name]['cards'].append(Player.players[self.name]['card'][0])
+        del Player.players[self.name]['card'][0]
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
-        Player.players[new_name]['cards'].append(draw_card(cards_pool)[1])
 
 
 class Dealer:
