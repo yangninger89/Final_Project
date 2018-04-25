@@ -66,7 +66,6 @@ def construct_key(list_of_cards: list) -> str:
 class Player:
     list_of_players = []  # list of players's name
     players = {}  # {name: {bet: bet, cards: [...]}}
-    win = 0
 
     def __init__(self, name: str, bet: int, cards_pool: list):
         self.name = name
@@ -82,8 +81,8 @@ class Player:
     # def __str__(self):
     #     return self.name
 
-    def __repr__(self):
-        return self.name
+    # def __repr__(self):
+    #     return self.name
 
     def choose_strategy(self):
 
@@ -120,7 +119,6 @@ class Player:
 
     def hitting(self, cards_pool):
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
-        Dealer.cards.append(draw_card(cards_pool)[1])
 
     def double_down(self, cards_pool):
         additional_bet = random.sample(range(1, self.bet + 1), 1)
@@ -149,6 +147,7 @@ class Dealer:
 
     def check_final_result(self):
         dealer_points = calculate_value(Dealer.cards)
+
         while dealer_points < 17:
             Dealer.cards.append(draw_card(deck)[1])
             dealer_points = calculate_value(Dealer.cards)
@@ -159,11 +158,12 @@ class Dealer:
             if dealer_points > player_points or player_points > 21:
                 Dealer.win += Player.players[p]['bet']
             if dealer_points < player_points:
-                Player.win += 3/2 * Player.players[p]['bet']
+                Dealer.win -= 3/2 * Player.players[p]['bet']
 
 
 if __name__ == '__main__':
-    # total_result = {}
+    player_win_count = 0
+    player_gain = 0
 
     for i in range(100):
         deck = initiating_deck()
@@ -174,33 +174,31 @@ if __name__ == '__main__':
         dealer_face_up = draw_card(deck)
         Dealer.cards.append(dealer_face_up[1])
 
-        print(main_player.choose_strategy())
+    def game_proceed(current_player):
+        my_cards = Player.players[current_player.name]['cards']
+        my_points = calculate_value(my_cards)
 
-        # def game_proceed(current_player_name):
-        #     my_cards = Player.players[current_player_name]['cards']
-        #     my_points = calculate_value(my_cards)
-        #     if my_points > 21:
-        #         Player.win += 3/2 * Player.players[current_player_name]['bet']
-        #     elif my_points == 21:
-        #         Dealer.check_final_result(the_house)
-        #     else:
-        #         next_strategy = current_player_name.choose_strategy()
-        #         if next_strategy == 'S':
-        #             Dealer.check_final_result(the_house)
-        #         elif next_strategy == 'D':
-        #             current_player_name.double_down(deck)
-        #             Dealer.check_final_result(the_house)
-        #         elif next_strategy == 'H':
-        #             current_player_name.hitting(deck)
-        #             while current_player_name.choose_strategy() == 'H':
-        #                 current_player_name.hitting(deck)
-        #             Dealer.check_final_result(the_house)
-        #         else:
-        #             current_player_name.splitting(deck)
-        #             for p in Player.list_of_players:
-        #                 game_proceed(p)
-        #
-        #
-        # game_proceed(main_player.name)
-        # print(Player.win, Dealer.win)
+        if my_points > 21:
+            game_result = False
+            Player.win -= 3/2 * Player.players[current_player.name]['bet']
+        elif my_points == 21:
+            Dealer.check_final_result(the_house)
+        else:
+            next_strategy = current_player.choose_strategy()
+            if next_strategy == 'S':
+                Dealer.check_final_result(the_house)
+            elif next_strategy == 'D':
+                current_player.double_down(deck)
+                Dealer.check_final_result(the_house)
+            elif next_strategy == 'H':
+                current_player.hitting(deck)
+                game_proceed(current_player)
+            else:
+                current_player.splitting(deck)
+                for p in Player.list_of_players:
+                    game_proceed(p)
+
+        # game_proceed(main_player)
+
+    # print(Player.win)
 
