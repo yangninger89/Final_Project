@@ -65,6 +65,7 @@ def construct_key(list_of_cards: list) -> str:
 
 class Player:
     list_of_players = []  # list of players's name
+    list_of_player_instance = []
     players = {}  # {name: {bet: bet, cards: [...]}}
 
     def __init__(self, name: str, bet: int, cards_pool: list):
@@ -77,6 +78,7 @@ class Player:
         Player.players[name]['cards'] = [self.card[1]]
         Player.players[name]['bet'] = self.bet
         Player.list_of_players.append(self.name)
+        Player.list_of_player_instance.append(self)
 
     # def __str__(self):
     #     return self.name
@@ -128,10 +130,15 @@ class Player:
     def splitting(self, cards_pool):
         i = len(Player.list_of_players)
         new_name = self.name + str(i)
-        Player(new_name, self.bet, cards_pool)
-        Player.players[new_name]['cards'].append(Player.players[self.name]['card'][0])
-        del Player.players[self.name]['card'][0]
+        print(new_name)
+        new_player = Player(new_name, self.bet, cards_pool)
+        Player.players[new_name]['cards'].append(Player.players[self.name]['cards'][0])
+        del Player.players[self.name]['cards'][0]
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
+        Player.list_of_player_instance.append(new_player)
+
+        print(Player.players[self.name]['cards'])
+        print(Player.players[new_name]['cards'])
 
 
 class Dealer:
@@ -162,12 +169,30 @@ class Dealer:
                 Dealer.win -= 3/2 * Player.players[p]['bet']
 
 
+def game_proceed(current_player):
+    next_strategy = current_player.choose_strategy()
+
+    if next_strategy == 'D':
+        current_player.double_down(deck)
+    elif next_strategy == 'H':
+        current_player.hitting(deck)
+        game_proceed(current_player)
+    elif next_strategy == 'SP':
+        current_player.splitting(deck)
+        for p in Player.list_of_player_instance:
+            game_proceed(p)
+
+
 if __name__ == '__main__':
     player_win_count = 0
     player_gain = 0
 
-    for i in range(100):
+    for i in range(5):
         deck = initiating_deck()
+        Player.list_of_player_instance = []
+        Player.list_of_players = []
+        Player.players = {}
+        Dealer.cards = []
         main_player = Player('steven', 5, deck)
         the_house = Dealer(deck)
         player_card = draw_card(deck)
@@ -175,31 +200,12 @@ if __name__ == '__main__':
         dealer_face_up = draw_card(deck)
         Dealer.cards.append(dealer_face_up[1])
 
-    def game_proceed(current_player):
-        my_cards = Player.players[current_player.name]['cards']
-        my_points = calculate_value(my_cards)
+        game_proceed(main_player)
+        for p in Player.list_of_players:
+            print(p, Player.players[p]['cards'])
+        print('dealer', Dealer.cards)
+        print('*****')
 
-        if my_points > 21:
-            game_result = False
-            Player.win -= 3/2 * Player.players[current_player.name]['bet']
-        elif my_points == 21:
-            Dealer.check_final_result(the_house)
-        else:
-            next_strategy = current_player.choose_strategy()
-            if next_strategy == 'S':
-                Dealer.check_final_result(the_house)
-            elif next_strategy == 'D':
-                current_player.double_down(deck)
-                Dealer.check_final_result(the_house)
-            elif next_strategy == 'H':
-                current_player.hitting(deck)
-                game_proceed(current_player)
-            else:
-                current_player.splitting(deck)
-                for p in Player.list_of_players:
-                    game_proceed(p)
 
-        # game_proceed(main_player)
 
-    # print(Player.win)
 
