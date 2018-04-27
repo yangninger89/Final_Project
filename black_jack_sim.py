@@ -93,8 +93,8 @@ def check_final_result(n):  # indicator of whether player chooses special fee
         player_points = calculate_value(cards)
 
         if player_points > 21:  # Dealer wins
-            if dealer_points <= 21:
-                dealer_gain_of_current_game += Player.players[p]['bet']
+            # if player get busted, dealer doesn't  automatically wins,
+            dealer_gain_of_current_game += Player.players[p]['bet']
         elif dealer_points > 21:  # Player wins
             if n != 1:
                 if len(set(Player.players[main_player.name]['colors'])) == 1:
@@ -221,8 +221,7 @@ class Dealer:
 
 
 if __name__ == '__main__':
-
-    normal_fee = 3
+    normal_fee = 5
     number_of_test = 10000
     player_black_jack_count = 0
     dealer_black_jack_count = 0
