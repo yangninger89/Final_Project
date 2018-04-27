@@ -1,5 +1,7 @@
 from hand import *
 from card import *
+import numpy as np
+
 
 
 class BlackJackSimulator(object):
@@ -82,4 +84,5 @@ class BlackJackSimulator(object):
 
 if __name__ == "__main__":
     simulator = BlackJackSimulator(2)
-    simulator.simulate()
+    print(simulator.simulate())
+
