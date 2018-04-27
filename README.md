@@ -1,11 +1,3 @@
-Create a FORK of this repository to store your code, data, and documentation for the final project. Detailed instructions for this assignment are in the course Moodle site.  The reason I'm asking you to fork this empty repository instead of creating a stand-alone repository is that it will be much easier for me and all students in the course to find all of our projects for code review and for grading. You can even get code review from students in the other section of IS590PR this way.
-
-Even though your fork of this repository shall be public, you'll still need to explicitly add any students on your team as Collaborators in the Settings. That way you can grant them write privileges.
-
-DELETE these lines from TEMPLATE up.
-
-TEMPLATE for your report:
-
 # Blackjack Game Variant
 
 ## Team Member(s): 
@@ -48,5 +40,12 @@ allows player to increase the difference up to 5%.
 
 ## Instructions on how to use the program:
 
+- Advanced strategy data file: black_jack_strategy.csv
+- Advanced strategy simulation: black_jack_sim.py
+- Dumb strategy simulation between dealer and single player: simulation2_dumb_strategy.py
+- Dumb strategy simulation among multiple players: simulation_dumb_strategy_multiple_players.py
+- Class files: card.py; hand.py
+
 ## All Sources Used:
 
+- https://www.blackjackclassroom.com/blackjack-basic-strategy-charts
