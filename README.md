@@ -19,7 +19,7 @@ TEMPLATE for your report:
 - **Base Model**: single deck, single player, original blackjack rules
 
 - **Updated Model**: add new rules to the original game, such
-as changing pay rate under the same color, and having choice of bet under double down
+as paying initial fee for changing pay rate under the same color, having choice of bet under double down
 
 
 ## Simulation's Variables of Uncertainty:
