@@ -24,16 +24,27 @@ as changing pay rate under the same color, and having choice of bet under double
 
 ## Simulation's Variables of Uncertainty:
 
-- **Simulation Variable**: pay rate under same color situation; the bet under double down situation
+- **Simulation Variable**: initial fees to play; pay rate under same color situation based on the initial fees
 
 - **Distribution of Variable**: both variables follow uniform distribution [a, b]
+
+## Different Strategy to Play the Game:
+
+- **Advanced Strategy**: hit; stay; split; double down; all depending on the cards at hand
+
+- **Dumb Strategy**: hit until 16
 
 ## Hypothesis or hypotheses before running the simulation:
 
 - The variant version will bring more profit for casinos
+- The advanced strategy will increase the difference of winning probability between dealer and player
 
+## Analytical Summary of your findings: 
 
-## Analytical Summary of your findings: (e.g. Did you adjust the scenario based on previous simulation outcomes?  What are the management decisions one could make from your simulation's output, etc.)
+- Paying additional fees for a higher pay rate, even with a general fee of as small as 1 dollar, casino is profiting
+
+- With dumb strategy, the difference of winning probability of dealer and player is around 2%, while advanced strategy 
+allows player to increase the difference up to 5%.
 
 ## Instructions on how to use the program:
 
