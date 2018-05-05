@@ -49,6 +49,13 @@ def calculate_value(cards_at_hand: list) -> int:
     This function calculates total points of cards at hand based on the value chart provided at the top as constants.
 
     :param cards_at_hand: a list of values of the cards at hand
+
+    >>> cards = ['ace', 'queen']
+    >>> calculate_value(cards)
+    21
+    >>> cards = ['three', 'six', 'king']
+    >>> calculate_value(cards)
+    19
     """
     value_at_hand = 0
     for card in cards_at_hand:
@@ -79,7 +86,11 @@ def calculate_points_exclude_ace(list_of_cards) -> int:
     This function calculates the total points at hand excluding Ace card if there is any.
 
     :param list_of_cards: a list of the values of cards at hand
-    :return:
+    :return: integer value of the total points excluding ace
+
+    >>> cards = ['ace', 'queen', 'three']
+    >>> calculate_value(cards)
+    13
     """
     temp_value = 0
     for card in list_of_cards:
@@ -93,8 +104,12 @@ def construct_key(list_of_cards: list) -> str:
     This function construct the key to be used to search the strategy chart, in order to get
     the next strategy -- only when there's ace card at hand.
 
-    :param list_of_cards:
-    :return:
+    :param list_of_cards: a list of the values of cards at hand
+    :return: key as a string
+
+    >>> cards = ['five', 'jack']
+    >>> construct_key(cards)
+    'A, 16'
     """
     temp_value = calculate_points_exclude_ace(list_of_cards)
     return 'A, ' + str(temp_value)
