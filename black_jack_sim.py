@@ -3,7 +3,8 @@ import random
 import csv
 
 VALUE_CHART = {'ace': 11, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9,
-               'ten': 10, 'jack': 10, 'queen': 10, 'king': 10}    # value of ace is default to 11
+               'ten': 10, 'jack': 10, 'queen': 10, 'king': 10}
+# value of ace is default to 11, and will be adjusted to 1 if needed when calculate the points.
 
 COLOR_CHART = {'diamond': 'red', 'heart': 'red', 'spade': 'black', 'club': 'black'}
 
@@ -12,7 +13,7 @@ BLACK_JACK = [['ace', 'ten'], ['ten', 'ace'], ['ace', 'jack'], ['jack', 'ace'], 
 
 is_simple_strategy = False
 
-# reads in the strategy_chart  {17: {2: 'S', 3: 'S'}}
+# reads in the strategy_chart  example: {17: {2: 'S', 3: 'S', ...}, ...}
 strategy_chart = {}
 
 with open('black_jack_strategy.csv', 'r') as f:
@@ -29,7 +30,12 @@ with open('black_jack_strategy.csv', 'r') as f:
         strategy_chart[key1] = strategies_in_row
 
 
-def initiating_deck() -> list:  # ex: ('diamond', 'three')
+def initiating_deck() -> list:  # example: ('diamond', 'three')
+    """
+    This function creates a complete single deck contains 52 cards, which is to mimic dealer's shuffling action.
+
+    :return: a list of 52 tuples, each stores information of one card, its suit and value
+    """
     suits = ['heart', 'diamond', 'club', 'spade']
     face_values = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king']
     complete_single_deck = list(itertools.product(suits, face_values))
@@ -39,6 +45,11 @@ def initiating_deck() -> list:  # ex: ('diamond', 'three')
 
 
 def calculate_value(cards_at_hand: list) -> int:
+    """
+    This function calculates total points of cards at hand based on the value chart provided at the top as constants.
+
+    :param cards_at_hand: a list of values of the cards at hand
+    """
     value_at_hand = 0
     for card in cards_at_hand:
         card_value = VALUE_CHART[card]
@@ -51,13 +62,25 @@ def calculate_value(cards_at_hand: list) -> int:
 
 
 def draw_card(cards_pool: list) -> tuple:
+    """
+    This function is used to mimic the action of drawing a card from the deck.
+
+    :param cards_pool: list of tuples that mimic cards left in the deck
+    :return: a tuple that represents the card being drawn
+    """
     new_card = cards_pool[0]
     del cards_pool[0]
 
     return new_card
 
 
-def calculate_points_exclude_ace(list_of_cards):
+def calculate_points_exclude_ace(list_of_cards) -> int:
+    """
+    This function calculates the total points at hand excluding Ace card if there is any.
+
+    :param list_of_cards: a list of the values of cards at hand
+    :return:
+    """
     temp_value = 0
     for card in list_of_cards:
         if card != 'ace':
@@ -66,11 +89,26 @@ def calculate_points_exclude_ace(list_of_cards):
 
 
 def construct_key(list_of_cards: list) -> str:
+    """
+    This function construct the key to be used to search the strategy chart, in order to get
+    the next strategy -- only when there's ace card at hand.
+
+    :param list_of_cards:
+    :return:
+    """
     temp_value = calculate_points_exclude_ace(list_of_cards)
     return 'A, ' + str(temp_value)
 
 
 def game_proceed(current_player):
+    """
+    This function mimic the entire process of players checking strategy chart and take actions.
+    Player (and any "players" from splitting) will be ready for dealer to reveal his cards and
+    check the final result by the end of this process.
+
+    :param current_player: the original player, which is a instance of the Player class
+    :return: none
+    """
     next_strategy = current_player.choose_strategy()
     if next_strategy == 'D':
         current_player.double_down(deck)
@@ -83,7 +121,14 @@ def game_proceed(current_player):
             game_proceed(p)
 
 
-def check_final_result(n):  # indicator of whether player chooses special fee
+def check_final_result(n):
+    """
+    This function checks the final status of each party at the game table when neither of then gets black jack.
+    The amount of gain/lose from the perspective the House will be recorded at the end.
+
+    :param n: is the indicator of whether the player choose to pay the normal fee, double fee or triple fee.
+    :return: none
+    """
 
     dealer_gain_of_current_game = 0
     dealer_points = calculate_value(Dealer.cards)
@@ -96,7 +141,7 @@ def check_final_result(n):  # indicator of whether player chooses special fee
         player_points = calculate_value(cards)
 
         if player_points > 21:  # Dealer wins
-            # if player get busted, dealer doesn't  automatically wins,
+            # According to game rules, if player get busted, dealer automatically wins without showing hands.
             dealer_gain_of_current_game += Player.players[p]['bet']
         elif dealer_points > 21:  # Player wins
             if n != 1:
@@ -121,6 +166,16 @@ def check_final_result(n):  # indicator of whether player chooses special fee
 
 
 def print_result(number_of_test, player_black_jack_count, dealer_black_jack_count, dealer_gain_from_fee):
+    """
+    This function prints the final gain/lose rate from the perspective of the House, as well as the amount
+    of black jacks appeared during the entire simulation.
+
+    :param number_of_test: number of simulations
+    :param player_black_jack_count: number of the instances where player got black jack
+    :param dealer_black_jack_count: number of the instances where dealer got black jack
+    :param dealer_gain_from_fee: the total amount of fees collected by the House
+    :return: none
+    """
     win = 0
     draw = 0
     lose = 0
@@ -162,6 +217,13 @@ class Player:
         Player.list_of_player_instance.append(self)
 
     def choose_strategy(self):
+        """
+        This class method mimics the process of player checking his cards at and and chooses the next strategy.
+        Depending on the value of the global variable is_simple_strategy, player will choose next strategy using
+        the strategy chart or using the simple strategy of "hit until 16".
+
+        :return: The next strategy
+        """
         my_cards = Player.players[self.name]['cards']
         my_points = calculate_value(my_cards)
 
@@ -198,16 +260,33 @@ class Player:
         return strategy
 
     def hitting(self, cards_pool):
+        """
+        This mimic the situation where player choose to hit -- ask for another card.
+        :param cards_pool: deck of cards left
+        :return: none
+        """
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
         Player.players[self.name]['colors'].append(draw_card(cards_pool)[0])
 
     def double_down(self, cards_pool):
+        """
+        This mimic the situation where player choose to add additional bet and then only get one more card.
+        :param cards_pool: deck of cards left
+        :return: none
+        """
         additional_bet = random.sample(range(1, self.bet + 1), 1)[0]
         Player.players[self.name]['bet'] += additional_bet
         Player.players[self.name]['cards'].append(draw_card(cards_pool)[1])
         Player.players[self.name]['colors'].append(draw_card(cards_pool)[0])
 
     def splitting(self, cards_pool):
+        """
+        This mimic the situation where player choose to split the first two cards (when they are same) into two
+        separate hands by placing another bet equal to his initial bet.
+
+        :param cards_pool: deck of cards left
+        :return: none
+        """
         i = len(Player.list_of_players)
         new_name = self.name + str(i)
         Player(new_name, self.bet, cards_pool)
