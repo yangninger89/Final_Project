@@ -323,9 +323,30 @@ class Dealer:
         Dealer.cards.append(self.face_down[1])
 
 
+def game_start(player_name: str):
+    """
+    This function mimic the start of a single game where dealer shuffles teh complete deck, player gets his
+    first two cards, and dealer gets his hold card.
+    :param player_name: name of the main player
+    :return: main player which is an instance of Player class, as well as the shuffled deck
+    """
+    deck = initiating_deck()
+    Player.list_of_player_instance = []
+    Player.list_of_players = []
+    Player.players = {}
+    Dealer.cards = []
+    initial_bet = random.sample(range(2, 500), 1)[0]
+    main_player = Player(player_name, initial_bet, deck)
+    Dealer(deck)
+    Player.players[main_player.name]['cards'].append(draw_card(deck)[1])
+    Player.players[main_player.name]['colors'].append(draw_card(deck)[0])
+
+    return main_player, deck
+
+
 if __name__ == '__main__':
-    normal_fee = 5
-    number_of_test = 10000
+    normal_fee = 3
+    number_of_test = 1000
     player_black_jack_count = 0
     dealer_black_jack_count = 0
     dealer_gain_from_fee = 0
@@ -338,16 +359,7 @@ if __name__ == '__main__':
         choice_of_fee = n * normal_fee
         dealer_gain_from_fee = choice_of_fee * number_of_test
 
-        deck = initiating_deck()
-        Player.list_of_player_instance = []
-        Player.list_of_players = []
-        Player.players = {}
-        Dealer.cards = []
-        random_bet = random.sample(range(2, 500), 1)[0]
-        main_player = Player('steven', random_bet, deck)
-        the_house = Dealer(deck)
-        Player.players[main_player.name]['cards'].append(draw_card(deck)[1])
-        Player.players[main_player.name]['colors'].append(draw_card(deck)[0])
+        main_player, deck = game_start('steven')
         dealer_face_up = draw_card(deck)
         Dealer.cards.append(dealer_face_up[1])
 
