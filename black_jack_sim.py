@@ -10,9 +10,12 @@ color_chart = {'diamond': 'red', 'heart': 'red', 'spade': 'black', 'club': 'blac
 BlackJack = [['ace', 'ten'], ['ten', 'ace'], ['ace', 'jack'], ['jack', 'ace'], ['ace', 'queen'], ['queen', 'ace'],
              ['ace', 'king'], ['king', 'ace']]
 
+is_simple_strategy = False
+
 # reads in the strategy_chart  {17: {2: 'S', 3: 'S'}}
 first_row = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'A']
 strategy_chart = {}
+
 with open('black_jack_strategy.csv', 'r') as f:
     reader = csv.reader(f)
     next(reader)
@@ -162,29 +165,35 @@ class Player:
         my_cards = Player.players[self.name]['cards']
         my_points = calculate_value(my_cards)
 
-        if len(my_cards) == 2 and my_cards[0] == my_cards[1]:
-            if 'ace' not in my_cards:
-                key = str(value_chart[my_cards[0]]) + ', ' + str(value_chart[my_cards[1]])
+        if not is_simple_strategy:
+            if len(my_cards) == 2 and my_cards[0] == my_cards[1]:
+                if 'ace' not in my_cards:
+                    key = str(value_chart[my_cards[0]]) + ', ' + str(value_chart[my_cards[1]])
+                    if dealer_face_up[1] == 'ace':
+                        strategy = strategy_chart[key]['A']
+                    else:
+                        strategy = strategy_chart[key][str(value_chart[dealer_face_up[1]])]
+                else:
+                    strategy = 'SP'
+            elif 'ace' in my_cards and calculate_points_exclude_ace(my_cards) <= 9:
+                key = construct_key(my_cards)
                 if dealer_face_up[1] == 'ace':
                     strategy = strategy_chart[key]['A']
                 else:
                     strategy = strategy_chart[key][str(value_chart[dealer_face_up[1]])]
             else:
-                strategy = 'SP'
-        elif 'ace' in my_cards and calculate_points_exclude_ace(my_cards) <= 9:
-            key = construct_key(my_cards)
-            if dealer_face_up[1] == 'ace':
-                strategy = strategy_chart[key]['A']
-            else:
-                strategy = strategy_chart[key][str(value_chart[dealer_face_up[1]])]
-        else:
-            if my_points >= 17:
-                strategy = 'S'
-            else:
-                if dealer_face_up[1] == 'ace':
-                    strategy = strategy_chart[str(my_points)]['A']
+                if my_points >= 17:
+                    strategy = 'S'
                 else:
-                    strategy = strategy_chart[str(my_points)][str(value_chart[dealer_face_up[1]])]
+                    if dealer_face_up[1] == 'ace':
+                        strategy = strategy_chart[str(my_points)]['A']
+                    else:
+                        strategy = strategy_chart[str(my_points)][str(value_chart[dealer_face_up[1]])]
+        else:
+            if my_points < 16:
+                strategy = 'H'
+            else:
+                strategy = 'S'
 
         return strategy
 
@@ -226,6 +235,7 @@ if __name__ == '__main__':
     player_black_jack_count = 0
     dealer_black_jack_count = 0
     dealer_gain_from_fee = 0
+    is_simple_strategy = False
 
     # baseline model
     for i in range(number_of_test):
