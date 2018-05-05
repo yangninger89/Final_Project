@@ -136,12 +136,12 @@ def game_proceed(current_player):
             game_proceed(p)
 
 
-def check_final_result(n):
+def check_final_result(fee_option_indicator):
     """
     This function checks the final status of each party at the game table when neither of then gets black jack.
     The amount of gain/lose from the perspective the House will be recorded at the end.
 
-    :param n: is the indicator of whether the player choose to pay the normal fee, double fee or triple fee.
+    :param fee_option_indicator: is the indicator of whether the player choose to pay the normal fee, double fee or triple fee.
     :return: none
     """
 
@@ -159,9 +159,9 @@ def check_final_result(n):
             # According to game rules, if player get busted, dealer automatically wins without showing hands.
             dealer_gain_of_current_game += Player.players[p]['bet']
         elif dealer_points > 21:  # Player wins
-            if n != 1:
+            if fee_option_indicator != 1:
                 if len(set(Player.players[main_player.name]['colors'])) == 1:
-                    dealer_gain_of_current_game -= n * Player.players[p]['bet']
+                    dealer_gain_of_current_game -= fee_option_indicator * Player.players[p]['bet']
                 else:
                     dealer_gain_of_current_game -= Player.players[p]['bet']
             else:
@@ -169,9 +169,9 @@ def check_final_result(n):
         elif dealer_points > player_points:  # Dealer wins
             dealer_gain_of_current_game += Player.players[p]['bet']
         elif dealer_points < player_points:  # Player wins
-            if n != 1:
+            if fee_option_indicator != 1:
                 if len(set(Player.players[main_player.name]['colors'])) == 1:
-                    dealer_gain_of_current_game -= n * Player.players[p]['bet']
+                    dealer_gain_of_current_game -= fee_option_indicator * Player.players[p]['bet']
                 else:
                     dealer_gain_of_current_game -= Player.players[p]['bet']
             else:
@@ -348,42 +348,53 @@ def game_start(player_name: str):
 
 if __name__ == '__main__':
     normal_fee = 3
-    number_of_test = 1000
+    number_of_test = 5000
     player_black_jack_count = 0
     dealer_black_jack_count = 0
     dealer_gain_from_fee = 0
     is_simple_strategy = False
+    fee_option = False
 
-    # baseline model
     for i in range(number_of_test):
-        n = random.sample([1, 2, 3], 1)[0]
         pay_rate = 3 / 2
-        choice_of_fee = n * normal_fee
-        dealer_gain_from_fee = choice_of_fee * number_of_test
-
-        main_player, deck, dealer_face_up = game_start('steven')
+        if fee_option:
+            fee_option_indicator = random.sample([1, 2, 3], 1)[0]
+            choice_of_fee = fee_option_indicator * normal_fee
+            dealer_gain_from_fee = choice_of_fee * number_of_test
+            main_player, deck, dealer_face_up = game_start('steven')
 
         # check if player/dealer got blackjack
-        if Player.players[main_player.name]['cards'] in BLACK_JACK:
-            player_black_jack_count += 1
-            if n != 1:
-                if len(set(Player.players[main_player.name]['colors'])) == 1:
-                    pay_rate = n * pay_rate
-                    Dealer.game_result.append(-1 * pay_rate * Player.players[main_player.name]['bet'])
+            if Player.players[main_player.name]['cards'] in BLACK_JACK:
+                player_black_jack_count += 1
+                if fee_option_indicator != 1:
+                    if len(set(Player.players[main_player.name]['colors'])) == 1:
+                        pay_rate = fee_option_indicator * pay_rate
+                        Dealer.game_result.append(-1 * pay_rate * Player.players[main_player.name]['bet'])
+                    else:
+                        Dealer.game_result.append(-1 * pay_rate * Player.players[main_player.name]['bet'])
                 else:
                     Dealer.game_result.append(-1 * pay_rate * Player.players[main_player.name]['bet'])
+            elif Dealer.cards in BLACK_JACK:
+                dealer_black_jack_count += 1
+                Dealer.game_result.append(Player.players[main_player.name]['bet'])
 
-            else:
-                Dealer.game_result.append(-1 * pay_rate * Player.players[main_player.name]['bet'])
-
-        elif Dealer.cards in BLACK_JACK:
-            dealer_black_jack_count += 1
-            Dealer.game_result.append(Player.players[main_player.name]['bet'])
-
-        # common situation when player didn't get blackjack
+            else:   # common situation when player didn't get blackjack
+                game_proceed(main_player)
+                check_final_result(fee_option_indicator)
         else:
-            game_proceed(main_player)
-            check_final_result(n)
+            main_player, deck, dealer_face_up = game_start('steven')
+            dealer_gain_from_fee = normal_fee * number_of_test
+            fee_option_indicator = 1
+            if Player.players[main_player.name]['cards'] in BLACK_JACK:
+                player_black_jack_count += 1
+                Dealer.game_result.append(-1 * pay_rate * Player.players[main_player.name]['bet'])
+            elif Dealer.cards in BLACK_JACK:
+                dealer_black_jack_count += 1
+                Dealer.game_result.append(Player.players[main_player.name]['bet'])
+            # common situation when player didn't get blackjack
+            else:
+                game_proceed(main_player)
+                check_final_result(fee_option_indicator)
 
     print_result(number_of_test, player_black_jack_count, dealer_black_jack_count, dealer_gain_from_fee)
 
