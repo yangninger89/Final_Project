@@ -325,10 +325,10 @@ class Dealer:
 
 def game_start(player_name: str):
     """
-    This function mimic the start of a single game where dealer shuffles teh complete deck, player gets his
-    first two cards, and dealer gets his hold card.
+    This function mimic the start of a single game where dealer shuffles teh complete deck, and then both parties
+    receive first two cards.
     :param player_name: name of the main player
-    :return: main player which is an instance of Player class, as well as the shuffled deck
+    :return: main player which is an instance of Player class, shuffled deck, and dealer's face up card
     """
     deck = initiating_deck()
     Player.list_of_player_instance = []
@@ -340,8 +340,10 @@ def game_start(player_name: str):
     Dealer(deck)
     Player.players[main_player.name]['cards'].append(draw_card(deck)[1])
     Player.players[main_player.name]['colors'].append(draw_card(deck)[0])
+    dealer_face_up = draw_card(deck)
+    Dealer.cards.append(dealer_face_up[1])
 
-    return main_player, deck
+    return main_player, deck, dealer_face_up
 
 
 if __name__ == '__main__':
@@ -359,9 +361,7 @@ if __name__ == '__main__':
         choice_of_fee = n * normal_fee
         dealer_gain_from_fee = choice_of_fee * number_of_test
 
-        main_player, deck = game_start('steven')
-        dealer_face_up = draw_card(deck)
-        Dealer.cards.append(dealer_face_up[1])
+        main_player, deck, dealer_face_up = game_start('steven')
 
         # check if player/dealer got blackjack
         if Player.players[main_player.name]['cards'] in BLACK_JACK:
