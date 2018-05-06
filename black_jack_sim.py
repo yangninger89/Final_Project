@@ -33,7 +33,6 @@ with open('black_jack_strategy.csv', 'r') as f:
 def initiating_deck() -> list:  # example: ('diamond', 'three')
     """
     This function creates a complete single deck contains 52 cards, which is to mimic dealer's shuffling action.
-
     :return: a list of 52 tuples, each stores information of one card, its suit and value
     """
     suits = ['heart', 'diamond', 'club', 'spade']
@@ -47,7 +46,6 @@ def initiating_deck() -> list:  # example: ('diamond', 'three')
 def calculate_value(cards_at_hand: list) -> int:
     """
     This function calculates total points of cards at hand based on the value chart provided at the top as constants.
-
     :param cards_at_hand: a list of values of the cards at hand
 
     >>> cards = ['ace', 'queen']
@@ -71,7 +69,6 @@ def calculate_value(cards_at_hand: list) -> int:
 def draw_card(cards_pool: list) -> tuple:
     """
     This function is used to mimic the action of drawing a card from the deck.
-
     :param cards_pool: list of tuples that mimic cards left in the deck
     :return: a tuple that represents the card being drawn
     """
@@ -84,13 +81,12 @@ def draw_card(cards_pool: list) -> tuple:
 def calculate_points_exclude_ace(list_of_cards) -> int:
     """
     This function calculates the total points at hand excluding Ace card if there is any.
-
     :param list_of_cards: a list of the values of cards at hand
     :return: integer value of the total points excluding ace
 
     >>> cards = ['ace', 'queen', 'three']
     >>> calculate_value(cards)
-    13
+    14
     """
     temp_value = 0
     for card in list_of_cards:
@@ -103,16 +99,37 @@ def construct_key(list_of_cards: list) -> str:
     """
     This function construct the key to be used to search the strategy chart, in order to get
     the next strategy -- only when there's ace card at hand.
-
     :param list_of_cards: a list of the values of cards at hand
     :return: key as a string
 
     >>> cards = ['five', 'jack']
     >>> construct_key(cards)
-    'A, 16'
+    'A, 15'
     """
     temp_value = calculate_points_exclude_ace(list_of_cards)
     return 'A, ' + str(temp_value)
+
+
+def game_start(player_name: str):
+    """
+    This function mimic the start of a single game where dealer shuffles teh complete deck, and then both parties
+    receive first two cards.
+    :param player_name: name of the main player
+    :return: main player which is an instance of Player class, shuffled deck, and dealer's face up card
+    """
+    deck = initiating_deck()
+    Player.list_of_player_instance = []
+    Player.list_of_players = []
+    Player.players = {}
+    Dealer.cards = []
+    initial_bet = random.sample(range(2, 500), 1)[0]
+    main_player = Player(player_name, initial_bet, deck)
+    Dealer(deck)
+    Player.players[main_player.name]['cards'].append(draw_card(deck)[1])
+    Player.players[main_player.name]['colors'].append(draw_card(deck)[0])
+    Dealer.cards.append(draw_card(deck)[1])
+
+    return main_player, deck
 
 
 def game_proceed(current_player):
@@ -120,7 +137,6 @@ def game_proceed(current_player):
     This function mimic the entire process of players checking strategy chart and take actions.
     Player (and any "players" from splitting) will be ready for dealer to reveal his cards and
     check the final result by the end of this process.
-
     :param current_player: the original player, which is a instance of the Player class
     :return: none
     """
@@ -140,7 +156,6 @@ def check_final_result(fee_option_indicator):
     """
     This function checks the final status of each party at the game table when neither of then gets black jack.
     The amount of gain/lose from the perspective the House will be recorded at the end.
-
     :param fee_option_indicator: is the indicator of whether the player choose to pay the normal fee, double fee or triple fee.
     :return: none
     """
@@ -184,7 +199,6 @@ def print_result(number_of_test, player_black_jack_count, dealer_black_jack_coun
     """
     This function prints the final gain/lose rate from the perspective of the House, as well as the amount
     of black jacks appeared during the entire simulation.
-
     :param number_of_test: number of simulations
     :param player_black_jack_count: number of the instances where player got black jack
     :param dealer_black_jack_count: number of the instances where dealer got black jack
@@ -236,8 +250,35 @@ class Player:
         This class method mimics the process of player checking his cards at and and chooses the next strategy.
         Depending on the value of the global variable is_simple_strategy, player will choose next strategy using
         the strategy chart or using the simple strategy of "hit until 16".
-
         :return: The next strategy
+
+        >>> deck = initiating_deck()
+        >>> player = Player('steven', 5, deck)
+        >>> Player.players['steven']['cards'] = ['ace', 'ace']
+        >>> player.choose_strategy()
+        'SP'
+
+        >>> deck = initiating_deck()
+        >>> player = Player('steven', 5, deck)
+        >>> Player.players['steven']['cards'] = ['six', 'six']
+        >>> dealer = Dealer(deck)
+        >>> Dealer.cards.append('ten')
+        >>> player.choose_strategy()
+        'H'
+
+        >>> deck = initiating_deck()
+        >>> player = Player('steven', 5, deck)
+        >>> Player.players['steven']['cards'] = ['five', 'five']
+        >>> Dealer.cards[1] = 'five'
+        >>> player.choose_strategy()
+        'D'
+
+        >>> deck = initiating_deck()
+        >>> player = Player('steven', 5, deck)
+        >>> Player.players['steven']['cards'] = ['ace', 'two', 'seven']
+        >>> Dealer.cards[1] = 'five'
+        >>> player.choose_strategy()
+        'S'
         """
         my_cards = Player.players[self.name]['cards']
         my_points = calculate_value(my_cards)
@@ -246,26 +287,26 @@ class Player:
             if len(my_cards) == 2 and my_cards[0] == my_cards[1]:
                 if 'ace' not in my_cards:
                     key = str(VALUE_CHART[my_cards[0]]) + ', ' + str(VALUE_CHART[my_cards[1]])
-                    if dealer_face_up[1] == 'ace':
+                    if Dealer.cards[1] == 'ace':
                         strategy = strategy_chart[key]['A']
                     else:
-                        strategy = strategy_chart[key][str(VALUE_CHART[dealer_face_up[1]])]
+                        strategy = strategy_chart[key][str(VALUE_CHART[Dealer.cards[1]])]
                 else:
                     strategy = 'SP'
             elif 'ace' in my_cards and calculate_points_exclude_ace(my_cards) <= 9:
                 key = construct_key(my_cards)
-                if dealer_face_up[1] == 'ace':
+                if Dealer.cards[1] == 'ace':
                     strategy = strategy_chart[key]['A']
                 else:
-                    strategy = strategy_chart[key][str(VALUE_CHART[dealer_face_up[1]])]
+                    strategy = strategy_chart[key][str(VALUE_CHART[Dealer.cards[1]])]
             else:
                 if my_points >= 17:
                     strategy = 'S'
                 else:
-                    if dealer_face_up[1] == 'ace':
+                    if Dealer.cards[1] == 'ace':
                         strategy = strategy_chart[str(my_points)]['A']
                     else:
-                        strategy = strategy_chart[str(my_points)][str(VALUE_CHART[dealer_face_up[1]])]
+                        strategy = strategy_chart[str(my_points)][str(VALUE_CHART[Dealer.cards[1]])]
         else:
             if my_points < 16:
                 strategy = 'H'
@@ -323,30 +364,8 @@ class Dealer:
         Dealer.cards.append(self.face_down[1])
 
 
-def game_start(player_name: str):
-    """
-    This function mimic the start of a single game where dealer shuffles teh complete deck, and then both parties
-    receive first two cards.
-    :param player_name: name of the main player
-    :return: main player which is an instance of Player class, shuffled deck, and dealer's face up card
-    """
-    deck = initiating_deck()
-    Player.list_of_player_instance = []
-    Player.list_of_players = []
-    Player.players = {}
-    Dealer.cards = []
-    initial_bet = random.sample(range(2, 500), 1)[0]
-    main_player = Player(player_name, initial_bet, deck)
-    Dealer(deck)
-    Player.players[main_player.name]['cards'].append(draw_card(deck)[1])
-    Player.players[main_player.name]['colors'].append(draw_card(deck)[0])
-    dealer_face_up = draw_card(deck)
-    Dealer.cards.append(dealer_face_up[1])
-
-    return main_player, deck, dealer_face_up
-
-
 if __name__ == '__main__':
+
     normal_fee = 3
     number_of_test = 5000
     player_black_jack_count = 0
@@ -361,7 +380,7 @@ if __name__ == '__main__':
             fee_option_indicator = random.sample([1, 2, 3], 1)[0]
             choice_of_fee = fee_option_indicator * normal_fee
             dealer_gain_from_fee = choice_of_fee * number_of_test
-            main_player, deck, dealer_face_up = game_start('steven')
+            main_player, deck = game_start('steven')
 
         # check if player/dealer got blackjack
             if Player.players[main_player.name]['cards'] in BLACK_JACK:
@@ -382,7 +401,7 @@ if __name__ == '__main__':
                 game_proceed(main_player)
                 check_final_result(fee_option_indicator)
         else:
-            main_player, deck, dealer_face_up = game_start('steven')
+            main_player, deck = game_start('steven')
             dealer_gain_from_fee = normal_fee * number_of_test
             fee_option_indicator = 1
             if Player.players[main_player.name]['cards'] in BLACK_JACK:
