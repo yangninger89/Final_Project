@@ -37,9 +37,7 @@ as paying initial fee for changing pay rate under the same color, having choice 
 to profit most of the time.
 
 - With the advanced strategy, the House has an advantage of winning by around 5%; while using simple strategy seems to 
-widen the gap to around 7%. Attached below are results from a test run:
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
-
+widen the gap to around 7%. Screenshots showing above result are also included in the repository.
 
 ## Files in the program:
 
