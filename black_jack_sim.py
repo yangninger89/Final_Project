@@ -366,8 +366,8 @@ class Dealer:
 
 if __name__ == '__main__':
 
-    normal_fee = 3
-    number_of_test = 5000
+    normal_fee = 1
+    number_of_test = 10000
     player_black_jack_count = 0
     dealer_black_jack_count = 0
     dealer_gain_from_fee = 0

@@ -33,18 +33,19 @@ as paying initial fee for changing pay rate under the same color, having choice 
 
 ## Analytical Summary of your findings: 
 
-- Paying additional fees for a higher pay rate, even with a general fee of as small as 1 dollar, casino is profiting
+- Paying additional fees for a higher pay rate, even with a general fee of as small as 1 dollar, casino should be able 
+to profit most of the time.
 
-- With dumb strategy, the difference of winning probability of dealer and player is around 2%, while advanced strategy 
-allows player to increase the difference up to 5%.
+- With the advanced strategy, the House has an advantage of winning by around 5%; while using simple strategy seems to 
+widen the gap to around 7%. Attached below are results from a test run:
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
 
-## Instructions on how to use the program:
 
-- Advanced strategy data file: black_jack_strategy.csv
-- Advanced strategy simulation: black_jack_sim.py
-- Dumb strategy simulation between dealer and single player: simulation2_dumb_strategy.py
-- Dumb strategy simulation among multiple players: simulation_dumb_strategy_multiple_players.py
-- Class files: card.py; hand.py
+## Files in the program:
+
+- black_jack_strategy.csv: constructed based on the strategy chart downloaded from blackjackclassroom.com.
+- black_jack_sim.py: user can simulate different scenarios by changing the boolean value of two indicator variable:
+`is_simple_strategy` (line 374) and `fee_option` (line 375).
 
 ## All Sources Used:
 
