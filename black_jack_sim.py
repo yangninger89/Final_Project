@@ -228,8 +228,14 @@ def print_result(number_of_test, player_black_jack_count, dealer_black_jack_coun
 
 
 class Player:
-    list_of_players = []  # list of players's name
-    list_of_player_instance = []
+    """
+    Instance of this class represents player(s) at the game table, since we are modeling single player version of the game,
+    there is only one instance at the beginning of each round; however, at situation where player choose to split, another
+    instance of Player class will be created -- mimic the fact that as game proceeding, the split hand is acting independently
+    from original hand.
+    """
+    list_of_players = []  # list of players's names
+    list_of_player_instance = []  # list of instances of the Player class
     players = {}  # {name: {bet: bet, cards: [...], color: 'red'}}
 
     def __init__(self, name: str, bet: int, cards_pool: list):
@@ -355,8 +361,11 @@ class Player:
 
 
 class Dealer:
-    cards = []
-    game_result = []
+    """
+    Instance of this class represents the dealer at the game table.
+    """
+    cards = []  # records the cards at dealer's hand
+    game_result = []  # records the game result of each round played during simulation.
 
     def __init__(self, cards_pool: list):
         self.face_down = cards_pool[0]
